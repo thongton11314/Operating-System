@@ -34,7 +34,8 @@ int main(void)
     */
   }
   return 0;
-}``
+}
+``
 Figure 3.32 (from the book) Outline of simple shell.
 
 This project is organized into several parts:
