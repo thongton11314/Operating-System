@@ -11,7 +11,7 @@ One technique for implementing a shell interface is to have the parent process f
 
 A C program that provides the general operations of a command-line shell is supplied in Figure 3.32 of the book also show below. The main() function presents the prompt osh-> and outlines the steps to be taken after input from the user has been read. The main() function continually loops as long as should_run equals 1; when the user enters exit at the prompt, your program will set should run to 0 and terminate.
 
-``
+```
 #include <stdio.h>
 #include <unistd.h>
 
@@ -35,7 +35,7 @@ int main(void)
   }
   return 0;
 }
-``
+```
 Figure 3.32 (from the book) Outline of simple shell.
 
 This project is organized into several parts:
