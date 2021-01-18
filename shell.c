@@ -8,6 +8,8 @@
 
 #define MAX_LINE 80 /* The maximum length command */
 
+const char delim[] = " \t\r\n\v\f"; // remove these chacter
+
 // Requirement
 /**
 * After reading user input, the steps are:
@@ -23,23 +25,28 @@
 // error:
 // fixing !! when execute >
 
+// Test case
+// ls | sort
+// ls | !!
+// !! | sort
+
 // functions prototype
 int isExit(char** args);                        // use to check exit
 int isExclaimSymbol(char** args);                     // use to check !!
 int exClaimExecution(char** args, char historyArg[]);                  
 int isEmpersandSymbol(char** args, int lastIndex);    // use to check empersand
 int isGreatSymbol(char** args, int lastIndex);  // use to check >
-int greatExecution(char** args, int lasIndex);  // execute >
+int greatExecution(char** args, int lastIndex);  // execute >
 int isLessSymbol(char** args, int lastIndex);   // use to check <
-int lessExecution(char** args, int lasIndex);   // execute <
+int lessExecution(char** args, int lastIndex);   // execute <
 int isPipeSymbol(char** args, int lastIndex);   // use to check |
+void pipeExecution(char** args, int lastIndex);
 
 int main(void) {
     int size = MAX_LINE/2 + 1;      // max size
     char *args[size];               // command line arguments
     char command[size];             // the input line, being tokennize later
     char assignCommand[size];       // use to hold current command
-    const char delim[] = " \t\r\n\v\f"; // remove these chacter
     int should_run = 1;             // flag to determine when to exit program
 
     // these for history
@@ -66,7 +73,7 @@ int main(void) {
             args[count] = strtok(command, delim);
 
             // check if empty command
-            if (args[count] == NULL) {  
+            if (args[count] == NULL) {
                 continue;
             }
 
@@ -103,8 +110,7 @@ int main(void) {
         
         // remove empersand
         if (isEmpersand) {
-            count--;
-            args[count] = NULL;
+            args[--count] = NULL;
         }        
 
         // check > symbol
@@ -122,6 +128,7 @@ int main(void) {
         // faild fork
         if (pid < 0) {
             fprintf(stderr, "Fork Failed");
+            exit(EXIT_FAILURE);
             return 0;
         }
 
@@ -132,8 +139,9 @@ int main(void) {
             int c;
 
             // execute pipe | command
-            if (isPipe) {
-                // do something here                
+            if (isPipe) {                
+                pipeExecution(args, count);
+                return 0;
             }
 
             // execute redirection > command
@@ -340,5 +348,112 @@ int lessExecution(char** args, int lastIndex) {
 }
 
 int isPipeSymbol(char** args, int lastIndex) {
-    return 0;
+    int flag = 0;
+    for (int i = 0; i < lastIndex && flag == 0; i++) {
+        if (strcmp(args[i], "|") == 0) {
+            flag = 1;
+        }
+    }
+    return flag;
+}
+
+void pipeExecution(char** args, int lastIndex) {
+    char *leftCommand[MAX_LINE/2 + 1];  // left argument
+    char *rightCommand[MAX_LINE/2 + 1]; // right argument
+
+    // check pivot
+    int pivot = 0;
+    for (int i = 0; i < lastIndex && pivot == 0; i++) {        
+        if (strcmp(args[i], "|") == 0) {
+            pivot = i;
+        }        
+    }
+    
+    // assign to left command
+    int leftSize = 0;
+    for(int i = 0; i < pivot; i++) {
+        leftCommand[leftSize++] = args[i];
+    }
+    leftCommand[leftSize] = NULL;    
+    
+    // assign to right command
+    int rightSize = 0;
+    for (int i = pivot + 1; i < lastIndex; i++) {
+        rightCommand[rightSize++] = args[i];
+    }
+    rightCommand[rightSize] = NULL;
+      
+    // check error left
+    if (leftCommand[0] == NULL) {
+        printf("bash: syntax error near unexpected token `|'\n");
+    }
+    
+    // check error right
+    int size = MAX_LINE/2 + 1;
+    char command[size];
+    int count = 0;
+    
+    /*
+    while (rightCommand[0] == NULL) {
+        printf(">");
+        fgets(command, size, stdin);
+
+        // tokenize line
+        rightCommand[count] = strtok(command, delim);
+
+        // set last null
+        while (rightCommand[count] != NULL) {
+            rightCommand[++count] = strtok(NULL, delim);
+        }
+    }
+    */
+    
+    // process
+    int pfd[2]; // open read/write pipe fd
+	pipe(pfd);    // pipe 
+
+	if (fork() == 0) {      
+        printf("Execute left %s\n", leftCommand[0]);
+        for(int i = 0; i < pivot; i++) {
+            printf("%s ", leftCommand[i]);
+        }
+        printf("\n");
+
+        /*
+        // close stdout
+        close(STDOUT_FILENO);
+
+        // stdout to pipe for write
+        dup2(STDIN_FILENO, 1);
+
+        // close pipe write
+        close(pfd[1]);
+
+        // execute command
+        execvp(leftCommand[0], leftCommand);
+        */
+	}
+
+	if (fork() == 0) {
+        printf("Execute right %s\n", rightCommand[0]);
+        for (int i = 0; i < rightSize; i++) {
+            printf("%s ", rightCommand[i]);
+        }
+        printf("\n");
+
+        /*
+        // close stdin
+		close(STDIN_FILENO);
+
+        // stdin to pipe for read
+		dup2(STDOUT_FILENO, 0);
+
+        // close pipe read
+		close(pfd[0]);
+
+        // execute command
+	    execvp(rightCommand[0], rightCommand);
+        */
+	}
+	wait(NULL);	// wait 
 }
