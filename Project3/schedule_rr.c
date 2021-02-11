@@ -8,15 +8,18 @@
 #include "list.h"
 #include "cpu.h"
 
+// typedef define name
+typedef struct node node;
+
 // protyping
 Task *pickNextTask();
 
-struct node **g_head = NULL;
+node **g_head = NULL;
 
 // add a task to the list 
 void add(char *name, int priority, int burst) {
     if (g_head == NULL) {
-        g_head = malloc(sizeof(struct node));
+        g_head = malloc(sizeof(node));
         *g_head = NULL;
     }
 
@@ -34,7 +37,7 @@ void schedule() {
     int currentBurst = 0;
     while (*g_head != NULL) {
 
-        // get teh task to be execute
+        // get the task to be execute
         Task *temp = pickNextTask();
 
         if (temp->burst > QUANTUM) {

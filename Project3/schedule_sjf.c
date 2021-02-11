@@ -8,17 +8,20 @@
 #include "list.h"
 #include "cpu.h"
 
+// typedef define name
+typedef struct node node;
+
 // protyping
 Task *pickNextTask();
 int comesBeforeNum(int a, int b);
 int comesBeforeLexo(char *a, char *b);
 
-struct node **g_head = NULL;
+node **g_head = NULL;
 
 // add a task to the list 
 void add(char *name, int priority, int burst) {
     if (g_head == NULL) {
-        g_head = malloc(sizeof(struct node));
+        g_head = malloc(sizeof(node));
         *g_head = NULL;
     }
 
