@@ -1,0 +1,6 @@
+a.out
+duy
+junk.txt
+practiceos
+shell.c
+test.txt
