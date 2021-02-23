@@ -1,0 +1,8 @@
+g++ driver.cpp shop.cpp -o sleepingBarbers -lpthread
+
+Run your program with thefollowing two scenarios:
+./sleepingBarbers 1 1 1 1000
+./sleepingBarbers 2 1 1 1000
+./sleepingBarbers 2 1 2 1000
+./sleepingBarbers 1 1 10 1000
+./sleepingBarbers 3 1 10 1000

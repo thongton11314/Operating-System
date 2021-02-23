@@ -1,0 +1,25 @@
+```
+- The original file allow only three argument which mean that 1 barber only
+    - The command is equivalent "./sleepingBarbers 1 10 1000"  ~  "./sleepingBarbers 0 1 10 1000"
+- The purpose of this project is making more barber
+    - Then the command can be type in as "./sleepingBarbers [number] 1 10 1000"
+
+Example:
+- To run with 1 barber then "./sleepingBarbers 1 10 1000"
+- To run with multiple barber then need to work with the code first to fit with 4 arguments
+
+Implementation for 4 arguments:
+- pthread_t barber_thread -> pthread_t barber_thread[num_barbers]; // since we have multiple barbers
+- argc != 4 -> argc != 5; // since we have more arguments
+
+Note: 
+- The output sameple is not exactly as our output
+- Waiting seat available is the spot left for customer waiting, 
+  if the waiting seat = 0 then other customer need to leave the shop
+  - Test "./sleepingBarbers 1 3 1000" or if code done "./sleepingBarbers 1 1 3 1000" for simple visualization
+
+Left over:
+- need to change "moves to the service chair" -> moves to the service chair "moves to a service chair[number]"
+- "wait for the hair-cut to be done" -> wait for barber[number] to be done with hair-cut```
+
+In other words, the print method distinguishes a barber from customers with the negative of the barber’s id.
