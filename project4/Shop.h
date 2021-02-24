@@ -11,27 +11,20 @@ using namespace std;
 
 #define kDefaultNumChairs 3
 #define kDefaultBarbers 1 // the default number of barbers = 1
+#define kDefaultCustomer 0
 
 // Prototype
 class Barber;
+class Customer;
 
 class Shop_org 
 {
 public:
-   Shop_org(int num_barbers, int num_chairs) : max_barbers_(num_barbers), max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), cust_drops_(0)
+   Shop_org(int num_barbers, int num_chairs, int max_customer) : max_barbers_(num_barbers), max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), max_customer_(max_customer), cust_drops_(0)
    { 
       init(); 
    };
 
-   Shop_org(int num_chairs) : max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), cust_drops_(0), max_barbers_(0)
-   { 
-      init(); 
-   };
-   Shop_org() : max_waiting_cust_(kDefaultNumChairs), cust_drops_(0), max_barbers_(0)
-   { 
-      init(); 
-   };
-   
    ~Shop_org();
 
    int visitShop(int id);   // return true only when a customer got a service
@@ -44,29 +37,37 @@ public:
    const int max_waiting_cust_; // the max number of threads that can wait   
    queue<int> waiting_chairs_;  // includes the ids of all waiting threads
    int cust_drops_;
+   const int max_customer_;
    const int max_barbers_;
    map<int, Barber> barbers_;
+   map<int, Customer> customer_;
+   queue<int> available_barber_;
 
    // Mutexes and condition variables to coordinate threads
-   pthread_mutex_t mutex_;   
+   pthread_mutex_t mutex_;
 
    void init();
    string int2string(int i);
    void print(int person, string message);
-
 };
 
 class Barber {
    public:
       Barber(const int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
       barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {}
-      pthread_cond_t* cond_customers_waiting_;
-      pthread_cond_t* cond_customer_served_;
       pthread_cond_t* cond_barber_paid_;
       pthread_cond_t* cond_barber_sleeping_;
       const int barber_id_;
       int customer_in_chair_;
       bool in_service_;            
       bool money_paid_;
+};
+
+class Customer {
+   public:
+      Customer(const int customer_id) : customer_id_(customer_id) {};
+      const int customer_id_;
+      pthread_cond_t* cond_customers_waiting_;
+      pthread_cond_t* cond_customer_served_;
 };
 #endif

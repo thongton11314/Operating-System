@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
    // Multiple barber, one shop, many customers
    pthread_t barber_thread[num_barbers];
    pthread_t customer_threads[num_customers];
-   Shop_org shop(num_barbers, num_chairs);
+   Shop_org shop(num_barbers, num_chairs, num_customers);
   
    // Create multiple Babers
    for (int i = 0; i < num_barbers; i++) 

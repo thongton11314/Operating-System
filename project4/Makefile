@@ -28,4 +28,7 @@ shop: clean
 3110: shop
 	./sleepingBarbers 3 1 10 1000
 
+213: shop
+	./sleepingBarbers 2 1 3 1000
 313: shop
+	./sleepingBarbers 3 1 3 1000

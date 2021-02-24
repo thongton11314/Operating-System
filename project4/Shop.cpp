@@ -5,24 +5,24 @@
 void Shop_org::init() 
 {
    pthread_mutex_init(&mutex_, NULL);
+
    for(int i = 0; i < max_barbers_; i++) {
       Barber aBarber(i, 0, false, false);
-      aBarber.cond_customers_waiting_ = new pthread_cond_t();
-      pthread_cond_init(aBarber.cond_customers_waiting_, NULL);
-      aBarber.cond_customer_served_ = new pthread_cond_t(); 
-      pthread_cond_init(aBarber.cond_customer_served_, NULL);
       aBarber.cond_barber_paid_ = new pthread_cond_t();
       pthread_cond_init(aBarber.cond_barber_paid_, NULL);
       aBarber.cond_barber_sleeping_ = new pthread_cond_t();
       pthread_cond_init(aBarber.cond_barber_sleeping_, NULL);      
-      barbers_.insert(pair<int, Barber>(i, aBarber)); 
+      
+      // insert all barber into map
+      barbers_.insert(pair<int, Barber>(i, aBarber));
+
+      // since this is initialize then all barber are available
+      available_barber_.push(i);
    }
 }
 
 Shop_org::~Shop_org() {
    for(int i = 0; i < max_barbers_; i++) {
-      delete barbers_.at(i).cond_customers_waiting_;
-      delete barbers_.at(i).cond_customer_served_;
       delete barbers_.at(i).cond_barber_paid_;
       delete barbers_.at(i).cond_barber_sleeping_;
    }
@@ -55,6 +55,12 @@ int Shop_org::get_cust_drops() const
 int Shop_org::visitShop(int id) 
 {
    pthread_mutex_lock(&mutex_);
+
+   // Create a new customer;
+   Customer aCustomer(id);
+   aCustomer.cond_customers_waiting_ = new pthread_cond_t();
+   aCustomer.cond_customer_served_ = new pthread_cond_t();
+   customer_.insert(pair<int, Customer>(id, aCustomer));
    
    // If all chairs are full then leave shop
    if (waiting_chairs_.size() == max_waiting_cust_) 
@@ -68,32 +74,27 @@ int Shop_org::visitShop(int id)
    // If someone is being served or transitioning waiting to service chair
    // then take a chair and wait for service
 
-   // check if all barbers are busy
-   int currentBaber = -1;
-   int amountBarberCurrentWorking = 0;
-   for (int i = 0; i < max_barbers_; i++) {
-      if (barbers_.at(i).customer_in_chair_ != 0) {
-         continue;
-      }
-      if (barbers_.at(i).customer_in_chair_ != 0 || !waiting_chairs_.empty()) {
-         waiting_chairs_.push(id);
-         print(id, "takes a waiting chair. # waiting seats available = " + int2string(max_waiting_cust_ - waiting_chairs_.size()));
-         pthread_cond_wait(barbers_.at(i).cond_customers_waiting_, &mutex_);
-         waiting_chairs_.pop();
-      }
-
-      print(id, "moves to a service chair [" + int2string(barbers_.at(i).barber_id_) + "], # waiting seats available = " + int2string(max_waiting_cust_ - waiting_chairs_.size()));
-      barbers_.at(i).customer_in_chair_ = id;
-      barbers_.at(i).in_service_ = true;
-
-      // wake up the barber just in case if he is sleeping
-      pthread_cond_signal(barbers_.at(i).cond_barber_sleeping_);
-
-      pthread_mutex_unlock(&mutex_);
-      currentBaber = i;
-      return currentBaber;
+   if (available_barber_.empty() || !waiting_chairs_.empty()) {
+      waiting_chairs_.push(id);
+      print(id, "takes a waiting chair. # waiting seats available = " + int2string(max_waiting_cust_ - waiting_chairs_.size()));
+      pthread_cond_wait(customer_.at(id).cond_customers_waiting_, &mutex_);
+      waiting_chairs_.pop();
    }
-   return currentBaber;
+
+   // get current working barber
+   int curBarber = available_barber_.front();
+   print(id, "moves to a service chair [" + int2string(barbers_.at(curBarber).barber_id_) + "], # waiting seats available = " + int2string(max_waiting_cust_ - waiting_chairs_.size()));
+   
+   // make current barber busy
+   available_barber_.pop();
+   barbers_.at(curBarber).customer_in_chair_ = id;
+   barbers_.at(curBarber).in_service_ = true;
+
+   // wake up the barber just in case if he is sleeping
+   pthread_cond_signal(barbers_.at(curBarber).cond_barber_sleeping_);
+
+   pthread_mutex_unlock(&mutex_);
+   return curBarber;
 }
 
 // Modify
@@ -105,7 +106,7 @@ void Shop_org::leaveShop(int cusID, int barID)
    print(cusID, "wait for barber[" + int2string(barID) + "] the hair-cut to be done");
    while (barbers_.at(barID).in_service_ == true)
    {
-      pthread_cond_wait(barbers_.at(barID).cond_customer_served_, &mutex_);
+      pthread_cond_wait(customer_.at(cusID).cond_customer_served_, &mutex_);
    }
    
    // Pay the barber and signal barber appropriately
@@ -145,7 +146,7 @@ void Shop_org::byeCustomer(int id)
   barbers_.at(id).in_service_ = false;  
   print(-id, "says he's done with a hair-cut service for customer[" + int2string(barbers_.at(id).customer_in_chair_)+ "]");
   barbers_.at(id).money_paid_ = false;
-  pthread_cond_signal(barbers_.at(id).cond_customer_served_);
+  pthread_cond_signal(customer_.at(barbers_.at(id).customer_in_chair_).cond_customer_served_);
   while (barbers_.at(id).money_paid_ == false)
   {
       pthread_cond_wait(barbers_.at(id).cond_barber_paid_, &mutex_);
@@ -153,9 +154,12 @@ void Shop_org::byeCustomer(int id)
 
   // set for the next customer
   barbers_.at(id).customer_in_chair_ = 0;
+  available_barber_.push(id);
 
   print(-id, "calls in another customer");
-  pthread_cond_signal(barbers_.at(id).cond_customers_waiting_);
 
+  // make sure there is still have customer to signal
+  if (waiting_chairs_.front() != 0)
+      pthread_cond_signal(customer_.at(waiting_chairs_.front()).cond_customers_waiting_);
   pthread_mutex_unlock(&mutex_);  // unlock
 }
