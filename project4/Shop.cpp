@@ -22,9 +22,14 @@ void Shop_org::init()
 }
 
 Shop_org::~Shop_org() {
-   for(int i = 0; i < max_barbers_; i++) {
-      delete barbers_.at(i).cond_barber_paid_;
-      delete barbers_.at(i).cond_barber_sleeping_;
+   for(auto it = barbers_.begin(); it != barbers_.end(); it++) {
+      delete it->second.cond_barber_paid_;
+      delete it->second.cond_barber_sleeping_;
+   }
+
+   for (auto it = customer_.begin(); it != customer_.end(); it++) {
+      delete it->second.cond_customers_waiting_;
+      delete it->second.cond_customer_served_;
    }
 }
 
