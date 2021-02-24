@@ -12,11 +12,9 @@ using namespace std;
 #define kDefaultNumChairs 3
 #define kDefaultBarbers 1 // the default number of barbers = 1
 
-/*
-Also, since there can be multiple barbers working on multiple customers at the same time, 
-you may consider using arrays or vectors of condition variables, 
-e.g., to ensure that a barber correctly signals the right customer when the haircut is finished
-*/
+// Prototype
+class Barber;
+
 class Shop_org 
 {
 public:
@@ -33,6 +31,8 @@ public:
    { 
       init(); 
    };
+   
+   ~Shop_org();
 
    int visitShop(int id);   // return true only when a customer got a service
    void leaveShop(int customer_id_, int barber_id_);
@@ -41,35 +41,32 @@ public:
    int get_cust_drops() const;
 
  private:
-   const int max_waiting_cust_; // the max number of threads that can wait
-   
+   const int max_waiting_cust_; // the max number of threads that can wait   
    queue<int> waiting_chairs_;  // includes the ids of all waiting threads
    int cust_drops_;
-
-   // barber part
-   typedef struct barberInfor {
-      const int barber_id_;
-      int customer_in_chair_;
-      bool in_service_;            
-      bool money_paid_;
-   } barberInfor; 
-
    const int max_barbers_;
-   map<int, barberInfor> barbers_;
+   map<int, Barber> barbers_;
 
    // Mutexes and condition variables to coordinate threads
-   // mutex_ is used in conjuction with all conditional variables
-   pthread_mutex_t mutex_;
-   pthread_cond_t  cond_customers_waiting_;
-   pthread_cond_t  cond_customer_served_;
-   pthread_cond_t  cond_barber_paid_;
-   pthread_cond_t  cond_barber_sleeping_;
+   pthread_mutex_t mutex_;   
 
-   //static const int barber = 0; // the id of the barber thread
-  
    void init();
    string int2string(int i);
    void print(int person, string message);
 
+};
+
+class Barber {
+   public:
+      Barber(const int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
+      barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {}
+      pthread_cond_t* cond_customers_waiting_;
+      pthread_cond_t* cond_customer_served_;
+      pthread_cond_t* cond_barber_paid_;
+      pthread_cond_t* cond_barber_sleeping_;
+      const int barber_id_;
+      int customer_in_chair_;
+      bool in_service_;            
+      bool money_paid_;
 };
 #endif
