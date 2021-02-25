@@ -1,6 +1,5 @@
 clean:
 	rm -rf *.o
-
 shop: clean
 	g++ driver.cpp shop.cpp -o sleepingBarbers -lpthread
 
@@ -30,7 +29,9 @@ shop: clean
 
 213: shop
 	./sleepingBarbers 2 1 3 1000
+
 313: shop
 	./sleepingBarbers 3 1 3 1000
+	
 414: shop
 	./sleepingBarbers 4 1 4 1000

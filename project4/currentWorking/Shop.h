@@ -6,29 +6,26 @@
 #include <string>
 #include <queue>
 #include <vector>
+#include <map>
 using namespace std;
 
 #define kDefaultNumChairs 3
+#define kDefaultBarbers 1 // the default number of barbers = 1
+#define kDefaultCustomer 0
+
+// Prototype
+class Barber;
+class Customer;
 
 class Shop_org 
 {
 public:
-   Shop_org(int num_barbers, int num_chairs) : max_barbers_(num_barbers), max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), customer_in_chair_(0),
-      in_service_(false), money_paid_(false), cust_drops_(0)
+   Shop_org(int num_barbers, int num_chairs, int max_customer) : max_barbers_(num_barbers), max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), max_customer_(max_customer), cust_drops_(0)
    { 
       init(); 
    };
 
-   Shop_org(int num_chairs) : max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), customer_in_chair_(0),
-      in_service_(false), money_paid_(false), cust_drops_(0), max_barbers_(0)
-   { 
-      init(); 
-   };
-   Shop_org() : max_waiting_cust_(kDefaultNumChairs), customer_in_chair_(0), in_service_(false),
-      money_paid_(false), cust_drops_(0), max_barbers_(0)
-   { 
-      init(); 
-   };
+   ~Shop_org(); 
 
    int visitShop(int id);   // return true only when a customer got a service
    void leaveShop(int customer_id_, int barber_id_);
@@ -37,29 +34,71 @@ public:
    int get_cust_drops() const;
 
  private:
-   const int max_waiting_cust_; // the max number of threads that can wait
-   int customer_in_chair_;      // use to check current customer is in working
-   bool in_service_;            
-   bool money_paid_;
+   const int max_waiting_cust_; // the max number of threads that can wait   
    queue<int> waiting_chairs_;  // includes the ids of all waiting threads
    int cust_drops_;
-
-   int customer_in_barber = 0;
+   const int max_customer_;
    const int max_barbers_;
-   queue<int> barbers_;         // includes the ids of all waiting barber threads
+   map<int, Barber> barbers_;
+   map<int, Customer> customer_;
+   queue<int> available_barber_;
 
    // Mutexes and condition variables to coordinate threads
-   // mutex_ is used in conjuction with all conditional variables
    pthread_mutex_t mutex_;
-   pthread_cond_t  cond_customers_waiting_;
-   pthread_cond_t  cond_customer_served_;
-   pthread_cond_t  cond_barber_paid_;
-   pthread_cond_t  cond_barber_sleeping_;
 
-   //static const int barber = 0; // the id of the barber thread
-  
    void init();
    string int2string(int i);
    void print(int person, string message);
+};
+
+// Barber Class
+class Barber {
+   public:
+
+      Barber(const int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
+      barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {
+         cond_barber_paid_ = new pthread_cond_t();
+         cond_barber_sleeping_ = new pthread_cond_t();
+      };
+
+      void initPThread() {
+         pthread_cond_init(this->cond_barber_paid_, nullptr);
+         pthread_cond_init(this->cond_barber_sleeping_, nullptr); 
+      };
+
+      void delBarberPThreadCondition() {
+         delete this->cond_barber_paid_;
+         delete this->cond_barber_sleeping_;
+      };
+
+      pthread_cond_t* cond_barber_paid_;
+      pthread_cond_t* cond_barber_sleeping_;
+      const int barber_id_;
+      int customer_in_chair_;
+      bool in_service_;            
+      bool money_paid_;
+};
+
+// Customer Class
+class Customer {
+   public:
+      Customer(const int customer_id) : customer_id_(customer_id) {
+         cond_customers_waiting_ = new pthread_cond_t();
+         cond_customer_served_ = new pthread_cond_t();
+      };
+
+      void initPThread() {
+         pthread_cond_init(this->cond_customers_waiting_, nullptr);
+         pthread_cond_init(this->cond_customer_served_, nullptr);
+      };
+
+      void delCustomerPThreadCondition() {
+         delete this->cond_customer_served_;
+         delete this->cond_customers_waiting_;
+      };
+
+      const int customer_id_;
+      pthread_cond_t* cond_customers_waiting_;
+      pthread_cond_t* cond_customer_served_;
 };
 #endif
