@@ -25,7 +25,7 @@ public:
       init(); 
    };
 
-   ~Shop_org();
+   ~Shop_org(); 
 
    int visitShop(int id);   // return true only when a customer got a service
    void leaveShop(int customer_id_, int barber_id_);
@@ -51,10 +51,26 @@ public:
    void print(int person, string message);
 };
 
+// Barber Class
 class Barber {
    public:
+
       Barber(const int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
-      barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {}
+      barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {
+         cond_barber_paid_ = new pthread_cond_t();
+         cond_barber_sleeping_ = new pthread_cond_t();
+      };
+
+      void initPThread() {
+         pthread_cond_init(this->cond_barber_paid_, nullptr);
+         pthread_cond_init(this->cond_barber_sleeping_, nullptr); 
+      };
+
+      void delBarberPThreadCondition() {
+         delete this->cond_barber_paid_;
+         delete this->cond_barber_sleeping_;
+      };
+
       pthread_cond_t* cond_barber_paid_;
       pthread_cond_t* cond_barber_sleeping_;
       const int barber_id_;
@@ -63,9 +79,24 @@ class Barber {
       bool money_paid_;
 };
 
+// Customer Class
 class Customer {
    public:
-      Customer(const int customer_id) : customer_id_(customer_id) {};
+      Customer(const int customer_id) : customer_id_(customer_id) {
+         cond_customers_waiting_ = new pthread_cond_t();
+         cond_customer_served_ = new pthread_cond_t();
+      };
+
+      void initPThread() {
+         pthread_cond_init(this->cond_customers_waiting_, nullptr);
+         pthread_cond_init(this->cond_customer_served_, nullptr);
+      };
+
+      void delCustomerPThreadCondition() {
+         delete this->cond_customer_served_;
+         delete this->cond_customers_waiting_;
+      };
+
       const int customer_id_;
       pthread_cond_t* cond_customers_waiting_;
       pthread_cond_t* cond_customer_served_;
