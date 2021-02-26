@@ -22,7 +22,11 @@ class Shop_org
 public:
 
    // Constructor
-   Shop_org(int num_barbers, int num_chairs, int max_customer) : max_barbers_(num_barbers), max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), max_customer_(max_customer), cust_drops_(0)
+   Shop_org(int num_barbers, int num_chairs, int max_customer) : 
+   max_barbers_((num_barbers > 0) ? num_barbers : kDefaultBarbers), 
+   max_waiting_cust_((num_chairs > 0 ) ? num_chairs : kDefaultNumChairs), 
+   max_customer_(max_customer), 
+   cust_drops_(0)
    { 
       init(); 
    };
@@ -52,12 +56,12 @@ private:
 
    // Customer Part
    const int max_customer_;      // Max customer
-   map<int, Customer*> customer_;// Collection of customer
+   map<int, Customer*> customers_;// Collection of customer
 
    // Barber part
-   const int max_barbers_;      // Max babers
-   map<int, Barber*> barbers_;  // Collection of barber
-   queue<int> available_barber_;// Collection of available barber
+   const int max_barbers_;       // Max babers
+   map<int, Barber*> barbers_;   // Collection of barber
+   queue<int> available_barber_; // Collection of available barber
 
    // Mutexes and condition variables to coordinate threads
    pthread_mutex_t mutex_;
@@ -78,8 +82,11 @@ class Barber {
    public:
 
       // Constructor
-      Barber(int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
-      barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {
+      Barber(int barber_id, int customer_in_chair, bool in_service, bool money_paid) :
+      barber_id_(barber_id), 
+      customer_in_chair_(customer_in_chair), 
+      in_service_(in_service), 
+      money_paid_(money_paid) {
          this->initializePthread();
       };
 
@@ -124,7 +131,8 @@ class Customer {
    public:
 
       // Constructor
-      Customer(int customer_id) : customer_id_(customer_id) {
+      Customer(int customer_id) : 
+      customer_id_(customer_id) {
          this->initializePthread();
       };
 
@@ -137,21 +145,21 @@ class Customer {
       // Default constructor
       ~Customer() {
          delete this->cond_customer_served_;
-         delete this->cond_customers_waiting_;
+         delete this->cond_customer_waiting_;
       }
 
    private:
 
       // Data members
       int customer_id_;
-      pthread_cond_t* cond_customers_waiting_;
+      pthread_cond_t* cond_customer_waiting_;
       pthread_cond_t* cond_customer_served_;
 
       // Initialize pthread condition
       void initializePthread() {
-         this->cond_customers_waiting_ = new pthread_cond_t();
+         this->cond_customer_waiting_ = new pthread_cond_t();
          this->cond_customer_served_ = new pthread_cond_t();
-         pthread_cond_init(this->cond_customers_waiting_, nullptr);
+         pthread_cond_init(this->cond_customer_waiting_, nullptr);
          pthread_cond_init(this->cond_customer_served_, nullptr);
       }
 };

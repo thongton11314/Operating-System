@@ -53,19 +53,18 @@ int main(int argc, char *argv[])
     pthread_t barber_threads[num_barbers];
     pthread_t customer_threads[num_customers];
     Shop_org shop(num_barbers, num_chairs, num_customers);
-    //ThreadParam *barber_params[num_barbers];
 
-    // Create multiple Babers
-   
+    // Create multiple Babers   
     for (int i = 0; i < num_barbers; i++) 
     {
         ThreadParam* barber_param = new ThreadParam(&shop, i, service_time);
         pthread_create(&barber_threads[i], NULL, barber, barber_param);
     }
-
+    
     // Create multiple Customers
     for (int i = 0; i < num_customers; i++) 
     {
+
         usleep(rand() % 1000);
         int id = i + 1;
         ThreadParam* customer_param = new ThreadParam(&shop, id, 0);
@@ -83,8 +82,14 @@ int main(int argc, char *argv[])
     {
         pthread_cancel(barber_threads[i]);
     }
+    
+    
+    for (int i = 0; i < num_barbers; i++)
+    {
+        pthread_detach(barber_threads[i]);
+    }
 
-    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl;
+    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl << endl;
     return 0;
 }
 
