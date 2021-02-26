@@ -13,7 +13,3 @@ compile: erase_old_file
 # Run the file
 shop: compile
 	./sleepingBarbers $(filter-out $@, $(MAKECMDGOALS))
-
-# Run and check leak
-valgrind_shop: compile
-	valgrind ./sleepingBarbers $(filter-out $@, $(MAKECMDGOALS)) 
