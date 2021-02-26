@@ -11,7 +11,6 @@ using namespace std;
 
 #define kDefaultNumChairs 3
 #define kDefaultBarbers 1 // the default number of barbers = 1
-#define kDefaultCustomer 0
 
 // Prototype
 class Barber;

@@ -30,6 +30,8 @@ void Shop_org::init()
    }
 }
 
+// ~Shop_org
+// This function use to carefully delete Barber and Customer pthread_condition
 Shop_org::~Shop_org() {
    for (auto it = barbers_.begin(); it != barbers_.end(); it++)
       it->second.delBarberPThreadCondition();
