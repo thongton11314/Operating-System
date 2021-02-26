@@ -30,6 +30,8 @@ void Shop_org::init()
    }
 }
 
+// ~Shop_org
+// This function use to carefully delete Barber and Customer pthread_condition
 Shop_org::~Shop_org() {
    for (auto it = barbers_.begin(); it != barbers_.end(); it++)
       it->second.delBarberPThreadCondition();
@@ -71,6 +73,8 @@ int Shop_org::get_cust_drops() const
 // This function uses to assign customer to available barber
 int Shop_org::visitShop(int id) 
 {
+
+   // Start the lock
    pthread_mutex_lock(&mutex_);
 
    // Create a new customer;
@@ -112,6 +116,7 @@ int Shop_org::visitShop(int id)
    // wake up the barber just in case if he is sleeping
    pthread_cond_signal(barbers_.at(curBarber).cond_barber_sleeping_);
 
+   // Release the lock
    pthread_mutex_unlock(&mutex_);
    return curBarber;
 }
@@ -120,6 +125,8 @@ int Shop_org::visitShop(int id)
 // This function uses to make sure the customer left the shop
 void Shop_org::leaveShop(int cusID, int barID) 
 {
+
+   // Start the lock
    pthread_mutex_lock( &mutex_ );
 
    // Wait for service to be completed
@@ -133,6 +140,8 @@ void Shop_org::leaveShop(int cusID, int barID)
    barbers_.at(barID).money_paid_ = true;
    pthread_cond_signal(barbers_.at(barID).cond_barber_paid_);
    print(cusID, "says good-bye to the barber[" + int2string(barID) + "]." );
+   
+   // Release the lock
    pthread_mutex_unlock(&mutex_);
 }
 
@@ -140,6 +149,8 @@ void Shop_org::leaveShop(int cusID, int barID)
 // This function uses to make barber work if customer in char
 void Shop_org::helloCustomer(int id) 
 {
+
+   // Start the lock
    pthread_mutex_lock(&mutex_);
    
    // If no customers than barber can sleep
@@ -156,6 +167,8 @@ void Shop_org::helloCustomer(int id)
    }
 
    print(-id, "starts a hair-cut service for customer[" + int2string(barbers_.at(id).customer_in_chair_) + "]");
+   
+   // Release the lock
    pthread_mutex_unlock(&mutex_);
 }
 
@@ -163,6 +176,8 @@ void Shop_org::helloCustomer(int id)
 // This function uses to make barber available after finishing
 void Shop_org::byeCustomer(int id) 
 {
+
+   // Start the lock
    pthread_mutex_lock(&mutex_);
 
    // Hair Cut-Service is done so signal customer and wait for payment
@@ -178,11 +193,12 @@ void Shop_org::byeCustomer(int id)
    // Set for the next customer
    barbers_.at(id).customer_in_chair_ = 0;
    available_barber_.push(id);
-
    print(-id, "calls in another customer");
 
    // Make sure there is still have customer to signal
    if (!waiting_chairs_.empty())
       pthread_cond_signal(customer_.at(waiting_chairs_.front()).cond_customers_waiting_);
-   pthread_mutex_unlock(&mutex_);  // unlock
+   
+   // Release the lock
+   pthread_mutex_unlock(&mutex_);
 }

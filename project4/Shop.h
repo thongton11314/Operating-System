@@ -51,12 +51,12 @@ private:
    int cust_drops_;             // The amount of customer not getting service
 
    // Customer Part
-   const int max_customer_;     // Max customer
-   map<int, Customer> customer_;// Collection of customer
+   const int max_customer_;      // Max customer
+   map<int, Customer*> customer_;// Collection of customer
 
    // Barber part
    const int max_barbers_;      // Max babers
-   map<int, Barber> barbers_;   // Collection of barber
+   map<int, Barber*> barbers_;  // Collection of barber
    queue<int> available_barber_;// Collection of available barber
 
    // Mutexes and condition variables to coordinate threads
@@ -70,61 +70,89 @@ private:
 
 // Barber Class
 class Barber {
+
+   // Using this for better encapsulation data member, Shop_org can take private data
+   // This is for future update set and get function if needed for data member
+   friend Shop_org;
+
    public:
 
       // Constructor
-      Barber(const int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
+      Barber(int barber_id_, int customer_in_chair_, bool in_service_, bool money_paid_) :
       barber_id_(barber_id_), customer_in_chair_(customer_in_chair_), in_service_(in_service_), money_paid_(money_paid_) {
-         cond_barber_paid_ = new pthread_cond_t();
-         cond_barber_sleeping_ = new pthread_cond_t();
+         this->initializePthread();
       };
 
-      // Initilized pthread condition
-      void initPThread() {
-         pthread_cond_init(this->cond_barber_paid_, nullptr);
-         pthread_cond_init(this->cond_barber_sleeping_, nullptr); 
-      };
+      // Copy constructor
+      Barber(Barber const &other) {
+         this->barber_id_ = other.barber_id_;
+         this->initializePthread();
+      }
 
       // Delete dynamic pthread condition
-      void delBarberPThreadCondition() {
+      ~Barber() {
          delete this->cond_barber_paid_;
          delete this->cond_barber_sleeping_;
       };
 
+   private:
+      
       // Data members
       pthread_cond_t* cond_barber_paid_;
       pthread_cond_t* cond_barber_sleeping_;
-      const int barber_id_;
+      int barber_id_;
       int customer_in_chair_;
       bool in_service_;            
       bool money_paid_;
+
+      // initialize pthread condition
+      void initializePthread() {
+         cond_barber_paid_ = new pthread_cond_t();
+         cond_barber_sleeping_ = new pthread_cond_t();
+         pthread_cond_init(this->cond_barber_paid_, nullptr);
+         pthread_cond_init(this->cond_barber_sleeping_, nullptr); 
+      }
 };
 
 // Customer Class
 class Customer {
+
+   // Using this for better encapsulation data member
+   // This is for future update set and get function if needed for data member
+   friend Shop_org;
+
    public:
 
       // Constructor
-      Customer(const int customer_id) : customer_id_(customer_id) {
-         cond_customers_waiting_ = new pthread_cond_t();
-         cond_customer_served_ = new pthread_cond_t();
+      Customer(int customer_id) : customer_id_(customer_id) {
+         this->initializePthread();
       };
 
-      // Initilized pthread condition
-      void initPThread() {
-         pthread_cond_init(this->cond_customers_waiting_, nullptr);
-         pthread_cond_init(this->cond_customer_served_, nullptr);
+      // Copy constructor
+      Customer(Customer const &other) {
+         this->customer_id_ = other.customer_id_;
+         this->initializePthread();
       };
 
-      // Delete dynamic pthread condition
-      void delCustomerPThreadCondition() {
+      // Default constructor
+      ~Customer() {
          delete this->cond_customer_served_;
          delete this->cond_customers_waiting_;
-      };
+      }
+
+   private:
 
       // Data members
-      const int customer_id_;
+      int customer_id_;
       pthread_cond_t* cond_customers_waiting_;
       pthread_cond_t* cond_customer_served_;
+
+      // Initialize pthread condition
+      void initializePthread() {
+         this->cond_customers_waiting_ = new pthread_cond_t();
+         this->cond_customer_served_ = new pthread_cond_t();
+         pthread_cond_init(this->cond_customers_waiting_, nullptr);
+         pthread_cond_init(this->cond_customer_served_, nullptr);
+      }
 };
 #endif
