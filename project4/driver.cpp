@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
         pthread_cancel(barber_thread[i]);
     }
 
-   cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl;
-   return 0;
+    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl;
+    return 0;
 }
 
 void *barber(void *arg) 
