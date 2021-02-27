@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     // Create multiple Customers
     for (int i = 0; i < num_customers; i++) 
     {
-
         usleep(rand() % 1000);
         int id = i + 1;
         ThreadParam* customer_param = new ThreadParam(&shop, id, 0);
@@ -77,19 +76,17 @@ int main(int argc, char *argv[])
         pthread_join(customer_threads[i], NULL);
     }
 
-    // Wait for barber to finish and cancel barber
-    for (int i = 0; i < num_barbers; i++) 
-    {
+    for (int i = 0; i < num_barbers; i++)
+    {        
         pthread_cancel(barber_threads[i]);
     }
-    
-    
+
     for (int i = 0; i < num_barbers; i++)
-    {
+    {        
         pthread_detach(barber_threads[i]);
     }
-
-    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl << endl;
+    
+    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl << endl<< endl;
     return 0;
 }
 

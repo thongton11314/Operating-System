@@ -121,8 +121,9 @@ void Shop_org::leaveShop(int cusID, int barID)
 {
 
    // Start the lock
-   pthread_mutex_lock( &mutex_ );
+   pthread_mutex_lock(&mutex_);
 
+   cout << "WEWE" << endl;
    // Wait for service to be completed
    print(cusID, "wait for barber[" + int2string(barID) + "] the hair-cut to be done");
    while (barbers_.at(barID)->in_service_ == true)
@@ -130,11 +131,13 @@ void Shop_org::leaveShop(int cusID, int barID)
       pthread_cond_wait(customers_.at(cusID)->cond_customer_served_, &mutex_);
    }
    
+   cout << "DSD" << endl;
    // Pay the barber and signal barber appropriately
-   pthread_cond_signal(barbers_.at(barID)->cond_barber_paid_);
    barbers_.at(barID)->money_paid_ = true;
+   pthread_cond_signal(barbers_.at(barID)->cond_barber_paid_);
+
    print(cusID, "says good-bye to the barber[" + int2string(barID) + "]." );
-   
+   cout << "SAS" << endl;
    // Release the lock
    pthread_mutex_unlock(&mutex_);
 }
@@ -147,19 +150,22 @@ void Shop_org::helloCustomer(int id)
    // Start the lock
    pthread_mutex_lock(&mutex_);
    
-   if (barbers_.at(id)->customer_in_chair_ == 0) {
-      if (waiting_chairs_.empty()) {
-         print(-id, "sleeps because of no customers.");
-         pthread_cond_wait(barbers_.at(id)->cond_barber_sleeping_, &mutex_);
-      }
+   // If no customers than barber can sleep
+   if (waiting_chairs_.empty() && barbers_.at(id)->customer_in_chair_ == 0) {
+      print(-id, "sleeps because of no customers.");
+      pthread_cond_wait(barbers_.at(id)->cond_barber_sleeping_, &mutex_);
    }
 
-   print(-id, "starts a hair-cut service for customer[" + int2string(barbers_.at(id)->customer_in_chair_) + "]");
-   
+   // Barber was waken up
+   if (barbers_.at(id)->customer_in_chair_ != 0)
+      print(-id, "starts a hair-cut service for customer[" + int2string(barbers_.at(id)->customer_in_chair_) + "]");
+
    // Release the lock
    pthread_mutex_unlock(&mutex_);
 }
 
+
+// Bug in here function
 // byeCustomer
 // This function uses to make barber available after finishing
 void Shop_org::byeCustomer(int id) 
@@ -170,23 +176,31 @@ void Shop_org::byeCustomer(int id)
 
    // Hair Cut-Service is done so signal customer and wait for payment
    barbers_.at(id)->in_service_ = false; 
-   barbers_.at(id)->money_paid_ = false; 
+   barbers_.at(id)->money_paid_ = false;
+   
+   // Bug here
    print(-id, "says he's done with a hair-cut service for customer[" + int2string(barbers_.at(id)->customer_in_chair_)+ "]");
-   pthread_cond_signal(customers_.at(barbers_.at(id)->customer_in_chair_)->cond_customer_served_); /// !!!!!!!!!!!!!!!
+   cout << "ASDASDAS 1" << endl;
+   pthread_cond_signal(customers_.at(barbers_.at(id)->customer_in_chair_)->cond_customer_served_); //terminate called after throwing an instance of 'std::out_of_range'
+  
+   // Wait for my customer to pay before I take a new one
    while (barbers_.at(id)->money_paid_ == false)
    {
       pthread_cond_wait(barbers_.at(id)->cond_barber_paid_, &mutex_);
    }
-
+   cout << "ASDASDAS 2" << endl;
    // Set for the next customer
    barbers_.at(id)->customer_in_chair_ = 0;
+
+
    print(-id, "calls in another customer");
    available_barber_.push(id);   // !!!!!!!!!!!!!!!!!!!!
-   
+   cout << "ASDASDAS 3" << endl;
    // Make sure there is still have customer to signal
-   if (!waiting_chairs_.empty())
+   if (!waiting_chairs_.empty()) { 
       pthread_cond_signal(customers_.at(waiting_chairs_.front())->cond_customer_waiting_);
-
+   }
+   cout << "ASDASDAS 4" << endl;
    // Release the lock
    pthread_mutex_unlock(&mutex_);
 }
