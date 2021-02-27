@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <unistd.h>
-#include "Shop.h"
+#include "shop.h"
 using namespace std;
 
 void *barber(void *);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         pthread_detach(barber_threads[i]);
     }
     
-    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl << endl<< endl;
+    cout << "# customers who didn't receive a service = " << shop.get_cust_drops() << endl;
     return 0;
 }
 
