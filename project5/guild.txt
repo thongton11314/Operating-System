@@ -1,0 +1,5 @@
+Directory:
+ - Max length 15 characters
+
+Inode:
+ - The last block holds only 100 bytes
