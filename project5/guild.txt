@@ -3,3 +3,10 @@ Directory:
 
 Inode:
  - The last block holds only 100 bytes
+
+Write function:
+ - Use function from bfs to build write() and read()
+ - Consider three cases:
+    - inside
+    - outsideand
+    - overlap

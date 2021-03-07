@@ -88,6 +88,14 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   // Insert your code here
   // ++++++++++++++++++++++++
 
+  /*
+    Test involve:
+      - test 1
+      - test 2
+      - test 3
+  */
+
+  // Look of the file
   FATAL(ENYI);                                  // Not Yet Implemented!
   return 0;
 }

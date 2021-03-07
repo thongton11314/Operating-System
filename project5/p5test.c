@@ -64,7 +64,7 @@ void test1(i32 fd) {
   i8 buf[BUFSIZE];                  // buffer for reads and writes
 
   fsSeek(fd, 0, SEEK_SET);     
-
+  
   i32 curs = fsTell(fd);
   checkCursor(1, 0, curs);
 
