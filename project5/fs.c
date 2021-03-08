@@ -100,6 +100,7 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   if (bfsGetSize(inum) >= numb) {
     i32 cursor = bfsTell(fd);
     bfsRead(inum, cursor, buf);
+    bfsSetCursor(inum, numb);
     return numb;
   }
 
