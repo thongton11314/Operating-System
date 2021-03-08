@@ -96,11 +96,22 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   */
   // For the case if the byte > file block system, then read enough byte, use bfsGetSize() to check
 
+  // Find the inum
   i32 inum = bfsFdToInum(fd);
+
+  // Check size of Inode
   if (bfsGetSize(inum) >= numb) {
+
+    // find the current cursor
     i32 cursor = bfsTell(fd);
+
+    // Read
     bfsRead(inum, cursor, buf);
+
+    // Set new cursor
     bfsSetCursor(inum, numb);
+
+    // return the amount of read
     return numb;
   }
 
