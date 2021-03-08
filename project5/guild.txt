@@ -1,3 +1,6 @@
+FBN: File block system
+DBN: Disk block system
+
 Directory:
  - Max length 15 characters
 
