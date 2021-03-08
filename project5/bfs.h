@@ -69,7 +69,7 @@ i32 bfsAllocBlock(i32 inum, i32 fbn);
 i32 bfsCreateFile(str fname);
 i32 bfsDerefOFT(i32 inum);
 i32 bfsExtend(i32 inum, i32 fbn);
-i32 bfsFbnToDbn(i32 inum,   i32 fbn);
+i32 bfsFbnToDbn(i32 inum, i32 fbn);
 i32 bfsFdToInum(i32 fd);
 i32 bfsFindFreeBlock();
 i32 bfsFindOFTE(i32 inum);

@@ -94,6 +94,8 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
       - test 2
       - test 3
   */
+  // Dimsey said shuold use this function i32 bfsFbnToDbn(i32 inum, i32 fbn);
+  // For the case if the byte > file block system, then read enough byte 
 
   // Look of the file
   FATAL(ENYI);                                  // Not Yet Implemented!
