@@ -116,16 +116,20 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
   // Find the inum
   i32 inum = bfsFdToInum(fd);
   i32 count = 0; // count total size;
+  
   // Check size of Inode
   if (bfsGetSize(inum) >= numb)
   {
     i32 totalSize = numb;
-    // find the current cursor
+
+    // Find the current cursor
     i32 cursor = bfsTell(fd);
-    i32 currFbn = cursor / BYTESPERBLOCK; //get fileblock number, floored
+    i32 currFbn = cursor / BYTESPERBLOCK; // get fileblock number, floored
     do
     {
-      if (totalSize > BYTESPERBLOCK) // 1 block = max of 512 bytes, get a max of 512 or the remainder of total bytes
+
+      // 1 block = max of 512 bytes, get a max of 512 or the remainder of total bytes
+      if (totalSize > BYTESPERBLOCK) 
       {
         numb = BYTESPERBLOCK;
         totalSize -= BYTESPERBLOCK;
@@ -136,22 +140,21 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
         totalSize = 0;
       }
 
-      i8 tempBuf[BUFSIZ]; //used to temporary store buffer and put it back in later
+      // Used to temporary store buffer and put it back in later
+      i8 tempBuf[BUFSIZ]; 
+
       // Read 
       bfsRead(inum, currFbn, tempBuf);
       memmove(buf + count, tempBuf, numb);
 
       // Set new cursor
       bfsSetCursor(inum, cursor += numb);
-      count += numb; // increment total size read
-      currFbn++; // increment File Block number
+      count += numb; // Increment total size read
+      currFbn++;     // Increment File Block number
     } while (totalSize > 0);
 
   return count;
   }
-
-  // Look of the file
-  FATAL(ENYI); // Not Yet Implemented!
   return 0;
 }
 

@@ -1,5 +1,5 @@
-p5:
+pj5:
 	gcc *.c *.h; rm -rf *.gch; ./a.out
 
-leak: p5
+leak: pj5
 	valgrind ./a.out
