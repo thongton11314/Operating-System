@@ -115,7 +115,7 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
 
   // Find the inum
   i32 inum = bfsFdToInum(fd);
-  i32 count = 0;
+  i32 count = 0; // count total size;
   // Check size of Inode
   if (bfsGetSize(inum) >= numb)
   {
