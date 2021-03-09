@@ -136,7 +136,7 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
         totalSize = 0;
       }
 
-      i8 * tempBuf[BUFSIZ]; //used to temporary store buffer and put it back in later
+      i8 tempBuf[BUFSIZ]; //used to temporary store buffer and put it back in later
       // Read 
       bfsRead(inum, currFbn, tempBuf);
       memmove(buf + count, tempBuf, numb);
