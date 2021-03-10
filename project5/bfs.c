@@ -452,4 +452,3 @@ i32 bfsWriteInode(i32 inum, Inode* inode) {
 
   return 0;
 }
-

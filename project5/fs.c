@@ -227,10 +227,11 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   i8 firstBlock[BYTESPERBLOCK];
   i8 lastBlock[BYTESPERBLOCK];
   // Build the buffer that will be written using bioWrite
-  i8 finalBuf[BUFFSIZE];
 
   // FDN
+  i32 firstBlock_FBN = cursor / BYTESPERBLOCK;
   i32 lastBlock_FBN = (cursor + numb) / BYTESPERBLOCK;
+  i32 curr_FBN = cursor / BYTESPERBLOCK;
 
   // Read 
   bfsRead(inum, cursor / BYTESPERBLOCK, firstBlock);
@@ -238,18 +239,27 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
 
   // if the written data is only taking a fraction of a block
   i32 s_dataBefore = cursor % BYTESPERBLOCK;
-  i32 s_totalSize = (lastBlock_FBN + 1) * BYTESPERBLOCK;
+  i32 s_totalSize = (lastBlock_FBN - firstBlock_FBN + 1) * BYTESPERBLOCK;
+  i8 finalBuf[s_totalSize];
 
 
   // Move the original data from 1st block, because write might not cover all of 1st block
-  memmove(finalBuf, firstBlock, BYTESPERBLOCK); // fix
+  memmove(finalBuf, firstBlock, s_dataBefore); // fix
 
   // Move the original data from last block to lastBLock_FBN * 512
-  memmove(finalBuf + lastBlock_FBN * BYTESPERBLOCK, lastBlock, BYTESPERBLOCK);
+  memmove(finalBuf + (lastBlock_FBN - firstBlock_FBN) * BYTESPERBLOCK, lastBlock, BYTESPERBLOCK);
 
   // Move data to be written
   memmove(finalBuf + s_dataBefore, buf, numb);
 
-  FATAL(ENYI); // Not Yet Implemented!
+  // Move data to be written
+  while (s_totalSize > 0) {
+    i32 curr_DBN = bfsFbnToDbn(inum, curr_FBN);
+    bioWrite(curr_DBN, finalBuf);
+    s_totalSize -= BYTESPERBLOCK;
+    curr_FBN++;
+  }
+  bfsSetCursor(inum, cursor + numb);
+
   return 0;
 }
