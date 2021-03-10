@@ -9,6 +9,8 @@
 #include "alias.h"
 #include "errors.h"
 
+#define BUFFSIZE 2000
+
 i32 fsClose (i32 fd);
 i32 fsCreate(str name);
 i32 fsFormat();

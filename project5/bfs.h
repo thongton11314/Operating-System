@@ -61,7 +61,7 @@ typedef struct {          // Open File Table Entry
   i32 inum;               // inum of file. O => slot not used
   i32 refs;               // # processes fsOpen'd this file
   i32 curs;               // cursor into file
-} OFTE;
+} OFTE; 
 
 OFTE g_oft[NUMOFTENTRIES];
 

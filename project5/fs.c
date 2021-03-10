@@ -84,7 +84,7 @@ i32 fsMount()
 // ============================================================================
 // Open the existing file called 'fname'.  On success, return its file
 // descriptor.  On failure, return EFNF
-// ============================================================================
+// ======================================================================== ====
 i32 fsOpen(str fname)
 {
   i32 inum = bfsLookupFile(fname); // lookup 'fname' in Directory
@@ -116,14 +116,13 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
   // Find the inum
   i32 inum = bfsFdToInum(fd);
   i32 count = 0; // count total size;
-  
   // Check size of Inode
-  if (bfsGetSize(inum) >= numb)
-  {
-    i32 totalSize = numb;
 
     // Find the current cursor
     i32 cursor = bfsTell(fd);
+    i32 totalSize = numb;
+    // if the size that's being read is larger than the iNode size, read only Inode remaining
+    if (cursor + numb > bfsGetSize(inum)) totalSize = bfsGetSize(inum) - cursor; 
     i32 currFbn = cursor / BYTESPERBLOCK; // get fileblock number, floored
     do
     {
@@ -152,10 +151,8 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
       count += numb; // Increment total size read
       currFbn++;     // Increment File Block number
     } while (totalSize > 0);
-
   return count;
-  }
-  return 0;
+
 }
 
 // ============================================================================
@@ -223,10 +220,22 @@ i32 fsSize(i32 fd)
 // ============================================================================
 i32 fsWrite(i32 fd, i32 numb, void *buf)
 {
-
-  // ++++++++++++++++++++++++
-  // Insert your code here
-  // ++++++++++++++++++++++++
+  i32 inum = bfsFdToInum(fd);
+  // Read the segment of values about to be written
+  i8 *readBuf[numb];
+  // stores the previous fd so that it wouldn't be changed
+  i32 sizeRead = fsRead(fd, numb, readBuf);
+  bfsSetCursor(inum, fd);
+  i32 cursor = bfsTell(fd);
+  // if the written data is only taking a fraction of a block
+  i32 dataBefore = cursor % BYTESPERBLOCK;
+  // Build the buffer that will be written using bioWrite
+  i8 *finalBuf[BUFFSIZE];
+  // Move the original data from 1st block, because write might not cover all of 1st block
+  memmove(finalBuf, readBuf, dataBefore);
+  // Move data to be written
+  memmove(finalBuf, buf, numb);
+  
 
   FATAL(ENYI); // Not Yet Implemented!
   return 0;
