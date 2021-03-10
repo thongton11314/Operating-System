@@ -224,32 +224,31 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   i32 cursor = bfsTell(fd);
 
   // Read the first block value
-  i8 *firstBlock[BYTESPERBLOCK];
-  i8 *lastBlock[BYTESPERBLOCK];
+  i8 firstBlock[BYTESPERBLOCK];
+  i8 lastBlock[BYTESPERBLOCK];
   // Build the buffer that will be written using bioWrite
-  i8 *finalBuf[BUFFSIZE];
+  i8 finalBuf[BUFFSIZE];
 
   // FDN
   i32 lastBlock_FBN = (cursor + numb) / BYTESPERBLOCK;
 
   // Read 
-  fsRead(fd, cursor / BYTESPERBLOCK, firstBlock);
-  fsRead(fd, lastBlock_FBN, lastBlock);
+  bfsRead(inum, cursor / BYTESPERBLOCK, firstBlock);
+  bfsRead(inum, lastBlock_FBN, lastBlock);
 
   // if the written data is only taking a fraction of a block
   i32 s_dataBefore = cursor % BYTESPERBLOCK;
-  i32 (lastBlock_FBN + 1) * BYTESPERBLOCK;
+  i32 s_totalSize = (lastBlock_FBN + 1) * BYTESPERBLOCK;
 
 
   // Move the original data from 1st block, because write might not cover all of 1st block
-  memmove(finalBuf, firstBlock, s_dataBefore);
+  memmove(finalBuf, firstBlock, BYTESPERBLOCK); // fix
 
   // Move the original data from last block to lastBLock_FBN * 512
   memmove(finalBuf + lastBlock_FBN * BYTESPERBLOCK, lastBlock, BYTESPERBLOCK);
 
   // Move data to be written
   memmove(finalBuf + s_dataBefore, buf, numb);
-  
 
   FATAL(ENYI); // Not Yet Implemented!
   return 0;
