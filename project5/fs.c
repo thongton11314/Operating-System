@@ -101,59 +101,47 @@ i32 fsOpen(str fname)
 i32 fsRead(i32 fd, i32 numb, void *buf)
 {
 
-  // ++++++++++++++++++++++++
-  // Insert your code here
-  // ++++++++++++++++++++++++
-
-  /*
-    Test involve:
-      - test 1
-      - test 2
-      - test 3
-  */
-  // For the case if the byte > file block system, then read enough byte, use bfsGetSize() to check
-
   // Find the inum
   i32 inum = bfsFdToInum(fd);
   i32 count = 0; // count total size;
-  // Check size of Inode
 
-    // Find the current cursor
-    i32 cursor = bfsTell(fd);
-    i32 totalSize = numb;
-    // if the size that's being read is larger than the iNode size, read only Inode remaining
-    if (cursor + numb > bfsGetSize(inum)) totalSize = bfsGetSize(inum) - cursor; 
-    i32 currFbn = cursor / BYTESPERBLOCK; // get fileblock number, floored
-    do
+  // Find the current cursor
+  i32 cursor = bfsTell(fd);
+  i32 totalSize = numb;
+
+  // If the size that's being read is larger than the iNode size, read only Inode remaining
+  if (cursor + numb > bfsGetSize(inum)) totalSize = bfsGetSize(inum) - cursor; 
+  i32 currFbn = cursor / BYTESPERBLOCK; // Get fileblock number, floored
+  do
     {
 
-      // 1 block = max of 512 bytes, get a max of 512 or the remainder of total bytes
-      if (totalSize > BYTESPERBLOCK) 
-      {
-        numb = BYTESPERBLOCK;
-        totalSize -= BYTESPERBLOCK;
-      }
-      else
-      {
-        numb = totalSize;
-        totalSize = 0;
-      }
+    // 1 block = max of 512 bytes, get a max of 512 or the remainder of total bytes
+    // Read max 512 bytes pertime
+    if (totalSize > BYTESPERBLOCK) 
+    {
+      numb = BYTESPERBLOCK;
+      totalSize -= BYTESPERBLOCK;
+    }
+    else
+    {
+      numb = totalSize;
+      totalSize = 0;
+    }
 
-      // Used to temporary store buffer and put it back in later
-      i8 tempBuf[BUFSIZ]; 
+    // Used to temporary store buffer and put it back in later
+    i8 tempBuf[BUFSIZ]; 
 
-      // Read 
-      bfsRead(inum, currFbn, tempBuf);
-      memmove(buf + count, tempBuf, numb);
-      memset(tempBuf, 0, BYTESPERBLOCK);
+    // Read 
+    bfsRead(inum, currFbn, tempBuf);    // Read
+    memmove(buf + count, tempBuf, numb);// Move teporary buff into buffer
+    memset(tempBuf, 0, BYTESPERBLOCK);  // Set temporary buff = 0
 
-      // Set new cursor
-      bfsSetCursor(inum, cursor += numb);
-      count += numb; // Increment total size read
-      currFbn++;     // Increment File Block number
+    // Set new cursor
+    bfsSetCursor(inum, cursor += numb); // Move cursor up
+    count += numb;                      // Increment total size read
+    currFbn++;                          // Increment File Block number
     } while (totalSize > 0);
   return count;
-
 }
 
 // ============================================================================
@@ -244,9 +232,8 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   i8 finalBuf[s_totalSize];
   i32 index = 0;
 
-
   // Move the original data from 1st block, because write might not cover all of 1st block
-  memmove(finalBuf, firstBlock, s_dataBefore); // fix
+  memmove(finalBuf, firstBlock, s_dataBefore);
 
   // Move the original data from last block to lastBLock_FBN * 512
   memmove(finalBuf + (lastBlock_FBN - firstBlock_FBN) * BYTESPERBLOCK, lastBlock, BYTESPERBLOCK);
@@ -263,6 +250,5 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
     index += BYTESPERBLOCK;
   }
   bfsSetCursor(inum, cursor + numb);
-
   return 0;
 }
