@@ -145,6 +145,7 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
       // Read 
       bfsRead(inum, currFbn, tempBuf);
       memmove(buf + count, tempBuf, numb);
+      memset(tempBuf, 0, BYTESPERBLOCK);
 
       // Set new cursor
       bfsSetCursor(inum, cursor += numb);
@@ -241,6 +242,7 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   i32 s_dataBefore = cursor % BYTESPERBLOCK;
   i32 s_totalSize = (lastBlock_FBN - firstBlock_FBN + 1) * BYTESPERBLOCK;
   i8 finalBuf[s_totalSize];
+  i32 index = 0;
 
 
   // Move the original data from 1st block, because write might not cover all of 1st block
@@ -255,9 +257,10 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   // Move data to be written
   while (s_totalSize > 0) {
     i32 curr_DBN = bfsFbnToDbn(inum, curr_FBN);
-    bioWrite(curr_DBN, finalBuf);
+    bioWrite(curr_DBN, finalBuf + index);
     s_totalSize -= BYTESPERBLOCK;
     curr_FBN++;
+    index += BYTESPERBLOCK;
   }
   bfsSetCursor(inum, cursor + numb);
 
