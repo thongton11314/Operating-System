@@ -55,6 +55,31 @@ void createP5() {
   fsClose(fd);
 }
 
+void testExtension(i32 fd) {
+  i8 buf[BUFSIZE];                  // buffer for reads and writes
+
+  fsSeek(fd, 49 * BYTESPERBLOCK, SEEK_SET);     
+
+  // i32 curs = fsTell(fd);
+  // checkCursor(4, 7 * 512 + 10, curs);
+
+  // memset(buf, 0, BUFSIZE);
+  // memset(buf, 77, 77);
+  
+  // fsWrite(fd, 77, buf);
+
+  // curs = fsTell(fd);
+  // checkCursor(4, 7 * 512 + 10 + 77, curs);
+
+  // fsSeek(fd, 7 * BYTESPERBLOCK, SEEK_SET);     
+
+  i32 ret = fsRead(fd, 3* BYTESPERBLOCK, buf);
+  assert(ret == BYTESPERBLOCK);
+
+  check(4, buf, 0,  10,  7);
+  check(4, buf, 10, 77,  77);
+  check(4, buf, 87, 425, 7);   
+}
 
 
 // ============================================================================
@@ -184,6 +209,8 @@ void test5(i32 fd) {
   curs = fsTell(fd);
   checkCursor(5, 10 * 512, curs);
 
+   memset(buf, 12, BUFSIZE);
+
   i32 ret = fsRead(fd, 2 * BYTESPERBLOCK, buf);
   assert(ret == 2 * BYTESPERBLOCK);
 
@@ -239,6 +266,8 @@ void test6(i32 fd) {
 void p5test() {
 
   i32 fd = fsOpen("P5");    // open "P5" for testing
+
+  //testExtension(fd);
 
   test1(fd);
   test2(fd);
