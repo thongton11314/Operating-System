@@ -58,27 +58,33 @@ void createP5() {
 void testExtension(i32 fd) {
   i8 buf[BUFSIZE];                  // buffer for reads and writes
 
-  fsSeek(fd, 49 * BYTESPERBLOCK, SEEK_SET);     
+  fsSeek(fd, 50 * BYTESPERBLOCK, SEEK_SET);     
 
-  // i32 curs = fsTell(fd);
-  // checkCursor(4, 7 * 512 + 10, curs);
+  i32 curs = fsTell(fd);
+  checkCursor(6, 50 * 512, curs);
 
-  // memset(buf, 0, BUFSIZE);
-  // memset(buf, 77, 77);
+  memset(buf, 0, BUFSIZE);
+  memset(buf, 69, 1024);
   
-  // fsWrite(fd, 77, buf);
+  fsWrite(fd, 1024, buf);
 
-  // curs = fsTell(fd);
-  // checkCursor(4, 7 * 512 + 10 + 77, curs);
+  curs = fsTell(fd);
+  checkCursor(6, 52* BYTESPERBLOCK, curs);
 
-  // fsSeek(fd, 7 * BYTESPERBLOCK, SEEK_SET);     
+  fsSeek(fd, 50 * BYTESPERBLOCK, SEEK_SET);     
 
-  i32 ret = fsRead(fd, 3* BYTESPERBLOCK, buf);
-  assert(ret == BYTESPERBLOCK);
+  curs = fsTell(fd);
+  checkCursor(6, 50 * 512, curs);
 
-  check(4, buf, 0,  10,  7);
-  check(4, buf, 10, 77,  77);
-  check(4, buf, 87, 425, 7);   
+  i32 ret = fsRead(fd, 2 * BYTESPERBLOCK, buf);
+  assert(ret == 1024);
+
+  curs = fsTell(fd);
+  checkCursor(6, 52*BYTESPERBLOCK, curs);
+
+  check(6, buf,   0, 512, 69);
+  check(6, buf, 512, 188, 69);
+  check(6, buf, 700, 324,  69);    // technically beyond EOF
 }
 
 

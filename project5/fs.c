@@ -136,6 +136,7 @@ i32 fsRead(i32 fd, i32 numb, void *buf)
     memmove(buf + count, tempBuf, numb);// Move teporary buff into buffer
     memset(tempBuf, 0, BYTESPERBLOCK);  // Set temporary buff = 0
 
+
     // Set new cursor
     bfsSetCursor(inum, cursor += numb); // Move cursor up
     count += numb;                      // Increment total size read
@@ -245,17 +246,22 @@ i32 fsWrite(i32 fd, i32 numb, void *buf)
   memmove(finalBuf + s_dataBefore, buf, numb);
   // Move data to be written
   while (s_totalSize > 0) {
-    // Check if extension is needed
-     if (curr_FBN * BYTESPERBLOCK > bfsGetSize(inum)) {
+    // Check if extension is needed (offset by 1 because size is not 0 based)
+     if (curr_FBN * BYTESPERBLOCK > bfsGetSize(inum) - 1) {
        bfsExtend(inum, curr_FBN);
      }
+     // convert FBN to DBN
     i32 curr_DBN = bfsFbnToDbn(inum, curr_FBN);
+    // Write to DBN
     bioWrite(curr_DBN, finalBuf + index);
+
+    // decrement total size
     s_totalSize -= BYTESPERBLOCK;
     curr_FBN++;
     index += BYTESPERBLOCK;
   }
   bfsSetCursor(inum, cursor + numb);
+  // only if the final cursor has been changed
   if (cursor + numb > bfsGetSize(inum)) {
     bfsSetSize(inum, cursor + numb);
   }
